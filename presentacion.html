@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presentación — Detección de Fricción Emocional</title>
+<style>
+:root{--bg:#0b1220;--bg2:#111b2e;--ink:#eaf0f7;--mut:#8a9bb3;--acc:#4aa8ff;--acc2:#9b7ede;
+--frus:#e63946;--preo:#f4a261;--impo:#9b7ede;--neut:#6c7884;--posi:#2a9d8f;--line:#1e2d42;--card:#162032;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:radial-gradient(1200px 800px at 70% -10%,#1a2d4d 0%,var(--bg) 55%);color:var(--ink);
+font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow:hidden;}
+.deck{height:100vh;width:100vw;position:relative}
+.slide{position:absolute;inset:0;padding:5vh 7vw;display:none;flex-direction:column;justify-content:center;
+animation:fade .45s cubic-bezier(.25,.46,.45,.94)}
+.slide.active{display:flex}
+@keyframes fade{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+
+.kicker{color:var(--acc);font-size:13px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:16px}
+h1{font-size:clamp(32px,5vw,52px);line-height:1.08;margin-bottom:18px;font-weight:800}
+h2{font-size:clamp(26px,3.5vw,36px);margin-bottom:22px;display:flex;align-items:center;gap:12px;font-weight:700}
+h2 .n{color:var(--acc);font-size:18px;font-weight:800;background:#152238;border:1px solid var(--line);
+padding:4px 12px;border-radius:10px;flex-shrink:0}
+p.lead{font-size:clamp(17px,2vw,21px);color:var(--mut);max-width:64ch;line-height:1.55}
+ul{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:10px}
+li{font-size:clamp(16px,1.8vw,19px);line-height:1.45;padding-left:30px;position:relative;max-width:72ch;color:var(--ink)}
+li::before{content:"";position:absolute;left:0;top:10px;width:10px;height:10px;border-radius:3px;background:var(--acc)}
+li b{color:#fff}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center}
+.cols.img{position:relative}
+.cols.img img,.fig{width:100%;height:auto;max-height:60vh;object-fit:contain;border-radius:14px;border:1px solid var(--line);background:#fff;opacity:0;transition:opacity .5s ease}
+.cols.img img.loaded,.fig.loaded{opacity:1}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card .ic{font-size:26px;margin-bottom:10px;display:block}
+.card h3{font-size:17px;margin-bottom:6px;font-weight:700}
+.card p{font-size:14px;color:var(--mut);line-height:1.45}
+.emos{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap}
+.emo{flex:1;min-width:170px;border-radius:14px;padding:18px;color:#0d1117;font-weight:500}
+.emo h3{font-size:18px;margin-bottom:4px;font-weight:700}.emo p{font-size:13px;opacity:.88;line-height:1.4}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center}
+.kpi .v{font-size:clamp(28px,3.5vw,40px);font-weight:800;color:var(--acc)}
+.kpi .l{font-size:12px;color:var(--mut);margin-top:6px;line-height:1.4}
+.pill{display:inline-block;background:#152238;border:1px solid var(--line);border-radius:20px;padding:6px 15px;
+font-size:13px;color:var(--mut);margin:4px 6px 0 0}
+.flow{display:flex;align-items:stretch;gap:10px;margin-top:16px;flex-wrap:wrap}
+.step{flex:1;min-width:140px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.step .t{font-size:11px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.step h4{font-size:15px;margin:6px 0;font-weight:700}.step p{font-size:13px;color:var(--mut);line-height:1.4}
+.arrow{display:flex;align-items:center;color:var(--mut);font-size:22px;font-weight:300}
+.center{align-items:center;text-align:center}
+.center p.lead{margin:0 auto}
+
+/* Image handling */
+.img-wrap{background:#fff;border-radius:14px;border:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:220px}
+.img-wrap img{max-width:100%;max-height:58vh;height:auto;object-fit:contain;opacity:0;transition:opacity .5s ease}
+.img-wrap img.loaded{opacity:1}
+.img-wrap .placeholder{position:absolute;color:var(--mut);font-size:13px;display:flex;align-items:center;gap:8px}
+.img-wrap .placeholder::before{content:"";width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.img-wrap img.loaded + .placeholder{display:none}
+
+.foot{position:absolute;bottom:20px;left:7vw;right:7vw;display:flex;justify-content:space-between;
+align-items:center;color:var(--mut);font-size:11px;border-top:1px solid var(--line);padding-top:10px}
+.nav{position:absolute;bottom:16px;right:7vw;display:flex;gap:8px;z-index:5}
+.nav button{background:var(--card);border:1px solid var(--line);color:var(--ink);width:40px;height:40px;
+border-radius:10px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.nav button:disabled, .nav button.disabled{opacity:.35;border-color:#2a3a50;cursor:not-allowed;pointer-events:none}
+.next-btn{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border:none;font-size:14px;font-weight:700;letter-spacing:.5px;padding:0 22px;width:auto}
+.next-btn:hover:not(:disabled){filter:brightness(1.15);border-color:transparent}
+.prev-btn{width:auto;padding:0 18px;font-size:14px;font-weight:600}
+/* Nav state helper */
+.nav-btn{min-width:120px}
+.progress{position:absolute;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .35s cubic-bezier(.25,.46,.45,.94);z-index:10}
+.tag-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.muted{color:var(--mut);font-size:clamp(13px,1.5vw,15px);margin-top:14px;max-width:72ch;line-height:1.5}
+
+/* Architecture diagram */
+.arch-diagram{display:flex;flex-direction:column;gap:16px;margin-top:16px;max-width:900px;margin-left:auto;margin-right:auto}
+.arch-row{display:flex;align-items:stretch;gap:12px;justify-content:center;flex-wrap:wrap}
+.arch-box{flex:1;min-width:160px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.arch-box .t{font-size:11px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.arch-box h4{font-size:15px;margin:6px 0;font-weight:700}
+.arch-box p{font-size:12px;color:var(--mut);line-height:1.4;margin:0}
+.arch-box.hl{border-color:var(--acc);background:linear-gradient(135deg,var(--card),#1a3a5c)}
+.arch-arrow-big{font-size:28px;color:var(--acc);text-align:center;margin:2px 0}
+.arch-label{font-size:11px;color:var(--mut);text-align:center;margin:2px 0}
+.arch-subrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.arch-chip{font-size:11px;padding:3px 10px;border-radius:10px;background:#152238;border:1px solid var(--line);color:var(--mut)}
+.arch-chip.txt{color:var(--frus);border-color:var(--frus)}
+.arch-chip.beh{color:var(--acc);border-color:var(--acc)}
+.arch-chip.fus{color:var(--posi);border-color:var(--posi)}
+.arch-chip.out{color:var(--preo);border-color:var(--preo)}
+
+/* Loading screen */
+#loader{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;flex-direction:column;
+align-items:center;justify-content:center;transition:opacity .4s}
+#loader.done{opacity:0;pointer-events:none}
+#loader .spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite}
+#loader p{margin-top:16px;color:var(--mut);font-size:13px}
+
+/* Responsive */
+@media(max-width:900px){
+  .cols{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+  .emos{flex-direction:column}
+  .kpis{grid-template-columns:1fr 1fr}
+  .flow{flex-direction:column}
+  .arrow{transform:rotate(90deg);justify-content:center}
+}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spinner"></div><p>Cargando imágenes…</p></div>
+
+<div class="deck" id="deck">
+<div class="progress" id="prog"></div>
+
+<!-- 1 Portada -->
+<section class="slide active center">
+  <div class="kicker">Computación Afectiva · Maestría en Ingeniería en Informática</div>
+  <h1>Detección de Fricción Emocional<br>en Chats de Incidentes de Migración</h1>
+  <p class="lead">Un sistema que detecta frustración, preocupación e impotencia en el canal de soporte y responde de forma proactiva y empática — antes de que el usuario tenga que insistir.</p>
+  <div class="tag-row" style="justify-content:center">
+    <span class="pill">Modelo de Russell (v × a)</span>
+    <span class="pill">Fusión tardía bimodal</span>
+    <span class="pill">Respuesta proactiva</span>
+  </div>
+</section>
+
+<!-- 2 Problema -->
+<section class="slide">
+  <h2><span class="n">01</span> El problema: el silencio del canal</h2>
+  <p class="lead">Cuando una carga de datos falla y el equipo no comunica el estado real, se abre una brecha entre la expectativa operativa del usuario y la realidad técnica. Esa brecha, amplificada por el silencio, genera fricción emocional.</p>
+  <div class="cards" style="margin-top:26px">
+    <div class="card"><span class="ic">🗄️</span><h3>Inconsistencia de datos</h3><p>Reportes incompletos que rompen la meta operativa del día.</p></div>
+    <div class="card"><span class="ic">🔇</span><h3>Silencio del equipo</h3><p>Falta de avisos proactivos: sensación de abandono.</p></div>
+    <div class="card"><span class="ic">⏳</span><h3>Incertidumbre prolongada</h3><p>La espera transforma la frustración en impotencia.</p></div>
+  </div>
+</section>
+
+<!-- 3 Emociones -->
+<section class="slide">
+  <h2><span class="n">02</span> El ciclo del incumplimiento</h2>
+  <p class="lead">Tres emociones complejas que se encadenan: la frustración, al no resolverse, deriva en preocupación anticipatoria y decanta en impotencia.</p>
+  <div class="emos">
+    <div class="emo" style="background:var(--frus)"><h3>😣 Frustración</h3><p>Primaria. La meta operativa choca con el obstáculo técnico. Activación alta, valencia negativa. Ancla: v=–0.70, a=+0.70.</p></div>
+    <div class="emo" style="background:var(--preo)"><h3>😟 Preocupación</h3><p>Hacia el futuro. "¿Y si pierdo el día?". Activación media. Ancla: v=–0.60, a=+0.50.</p></div>
+    <div class="emo" style="background:var(--impo)"><h3>😞 Impotencia</h3><p>Barrera externa. "No depende de mí". Activación baja: resignación. Ancla: v=–0.80, a=–0.30.</p></div>
+  </div>
+</section>
+
+<!-- 4 Russell -->
+<section class="slide">
+  <h2><span class="n">03</span> Modelo continuo de Russell</h2>
+  <div class="cols">
+    <div>
+      <p class="lead">Cada emoción es un punto en el plano <b>valencia × arousal</b>. El sistema no clasifica de forma rígida: estima un vector continuo (v, a) y deriva la emoción por región y la severidad por magnitud.</p>
+      <ul style="margin-top:18px">
+        <li><b>Frustración / preocupación</b>: cuadrante NO (displacer · activación alta).</li>
+        <li><b>Impotencia</b>: cuadrante SO (displacer · calma) — la caída de energía.</li>
+        <li><b>Severidad</b> = magnitud del vector (v, a) / √2.</li>
+      </ul>
+    </div>
+    <div class="img-wrap"><img data-src="fig1_circumplejo_russell.png" alt="Circumplejo de Russell"><div class="placeholder">Cargando…</div></div>
+  </div>
+</section>
+
+<!-- 5 Dataset -->
+<section class="slide">
+  <h2><span class="n">04</span> El dataset</h2>
+  <p class="lead">300 mensajes sintéticos que replican el estilo real del canal (guardias, reglas de calidad, SLA, DAGs), con hilos completos donde la emoción escala. Datos anonimizados.</p>
+  <div class="cols" style="margin-top:18px">
+    <div>
+      <ul>
+        <li><b>Etiquetas:</b> valencia, arousal, emoción, cuadrante, severidad, fricción.</li>
+        <li><b>7 meta-features conductuales:</b> cadencia, densidad de <b>!</b> y <b>?</b>, mayúsculas, re-pregunta, espera sin respuesta.</li>
+        <li><b>Distribución realista:</b> 38 % con fricción (53 frustración, 36 preocupación, 24 impotencia).</li>
+        <li><b>Hilos de escalada:</b> frustación → preocupación → impotencia en secuencia.</li>
+      </ul>
+    </div>
+    <div class="img-wrap"><img data-src="fig2_distribucion.png" alt="Distribución de clases"><div class="placeholder">Cargando…</div></div>
+  </div>
+</section>
+
+<!-- 6 Hallazgo conductual -->
+<section class="slide center">
+  <h2 style="justify-content:center"><span class="n">05</span> El hallazgo clave</h2>
+  <p class="lead">El <b>cómo</b> se escribe predice el arousal: re-preguntas (+0.58), signos <b>?</b> (+0.52) y <b>!</b> (+0.48), mayúsculas (+0.28) y cadencia acelerada (−0.60). Un mensaje corto repetido con "???" dispara un arousal alto.</p>
+  <div class="img-wrap" style="margin-top:18px;max-width:900px;margin-left:auto;margin-right:auto"><img data-src="fig4_correlacion.png" alt="Correlación meta-features" style="max-height:52vh"><div class="placeholder">Cargando…</div></div>
+</section>
+
+<!-- 7 Escalada emocional (nueva) -->
+<section class="slide">
+  <h2><span class="n">06</span> Escalada emocional en un hilo</h2>
+  <p class="lead">Ejemplo real del dataset: la fricción no aparece de golpe. Se acumula en el hilo hasta que el usuario siente que no puede resolverlo solo.</p>
+  <div class="cols" style="margin-top:18px">
+    <div class="img-wrap"><img data-src="fig5_escalada.png" alt="Escalada emocional en hilo"><div class="placeholder">Cargando…</div></div>
+    <div>
+      <ul>
+        <li><b>Msg 1 — Frustración:</b> "¿Por qué la tabla CLIENTES no cargó? Llevo 2 horas esperando." (v=–0.65, a=+0.68)</li>
+        <li><b>Msg 2 — Preocupación:</b> "Si no llega antes de las 14h el SLA de la BU Retail se rompe." (v=–0.60, a=+0.55)</li>
+        <li><b>Msg 3 — Impotencia:</b> "Ok, entiendo que no depende de ustedes. Solo avísenme cuando esté." (v=–0.75, a=–0.25)</li>
+      </ul>
+      <p class="muted">El sistema detecta la deriva y puede intervenir antes del tercer mensaje.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 Arquitectura -->
+<section class="slide">
+  <h2><span class="n">07</span> Modelo bimodal · fusión tardía</h2>
+  <div class="flow">
+    <div class="step"><div class="t">Rama A · Texto</div><h4>Valencia</h4><p><b>BETO</b> congelado + Ridge (embeddings contextualizados en español).</p></div>
+    <div class="arrow">＋</div>
+    <div class="step"><div class="t">Rama B · Conducta</div><h4>Arousal</h4><p>Gradient Boosting sobre 7 meta-features.</p></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="t">Fusión tardía</div><h4>(v, a)</h4><p>Valencia ← BETO · Arousal ← conducta.</p></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="t">Decisión</div><h4>Emoción</h4><p>Frontera logística en el plano de Russell.</p></div>
+  </div>
+  <p class="muted">Cada rama es entrenable y auditable por separado. BETO aporta semántica profunda sin memorizar n-gramas; la conducta aporta señales de urgencia.</p>
+  <div class="cols" style="margin-top:18px">
+    <div class="img-wrap"><img data-src="fig7_importancia_features.png" alt="Importancia de features"><div class="placeholder">Cargando…</div></div>
+    <div class="img-wrap"><img data-src="fig8_fronteras_decision.png" alt="Fronteras de decisión"><div class="placeholder">Cargando…</div></div>
+  </div>
+</section>
+
+<!-- 8 Arquitectura del sistema -->
+<section class="slide">
+  <h2><span class="n">08</span> Arquitectura del sistema — de extremo a extremo</h2>
+  <p class="lead">Flujo completo desde el mensaje del usuario hasta la respuesta empática y la telemetría. La inferencia corre en Python; el front solo dibuja.</p>
+  <div class="arch-diagram">
+    <!-- Capa 1: Entrada -->
+    <div class="arch-row">
+      <div class="arch-box">
+        <div class="t">Entrada</div>
+        <h4>📝 Mensaje de chat</h4>
+        <p>Texto libre del canal de incidentes</p>
+        <div class="arch-subrow">
+          <span class="arch-chip">USR_xx</span>
+          <span class="arch-chip">SUP_xx</span>
+        </div>
+      </div>
+    </div>
+    <div class="arch-arrow-big">↓</div>
+    <div class="arch-label">Extracción de features</div>
+
+    <!-- Capa 2: Features -->
+    <div class="arch-row">
+      <div class="arch-box">
+        <div class="t">Rama Texto</div>
+        <h4>BETO + Ridge</h4>
+        <p>Embeddings contextualizados pre-entrenados en español</p>
+        <div class="arch-subrow">
+          <span class="arch-chip txt">valencia</span>
+        </div>
+      </div>
+      <div class="arch-box">
+        <div class="t">Rama Conducta</div>
+        <h4>7 meta-features</h4>
+        <p>Longitud, !, ?, mayúsculas, cadencia, re-pregunta, espera</p>
+        <div class="arch-subrow">
+          <span class="arch-chip beh">arousal</span>
+        </div>
+      </div>
+    </div>
+    <div class="arch-arrow-big">↓</div>
+    <div class="arch-label">Fusión tardía ponderada</div>
+
+    <!-- Capa 3: Fusión + Decisión -->
+    <div class="arch-row">
+      <div class="arch-box hl">
+        <div class="t">Espacio de Russell</div>
+        <h4>(v, a) → Emoción</h4>
+        <p>v = 0.8·texto + 0.2·conducta<br>a = 0.7·conducta + 0.3·texto</p>
+        <div class="arch-subrow">
+          <span class="arch-chip fus">severidad</span>
+          <span class="arch-chip fus">cuadrante</span>
+        </div>
+      </div>
+      <div class="arch-box hl">
+        <div class="t">Capa de decisión</div>
+        <h4>LogisticRegression</h4>
+        <p>Frontera aprendida en el plano (v, a)</p>
+        <div class="arch-subrow">
+          <span class="arch-chip fus">frustración</span>
+          <span class="arch-chip fus">preocupación</span>
+          <span class="arch-chip fus">impotencia</span>
+          <span class="arch-chip fus">neutral</span>
+          <span class="arch-chip fus">positivo</span>
+        </div>
+      </div>
+    </div>
+    <div class="arch-arrow-big">↓</div>
+    <div class="arch-label">Motor de respuesta proactiva</div>
+
+    <!-- Capa 4: Salidas -->
+    <div class="arch-row">
+      <div class="arch-box">
+        <div class="t">Salida A</div>
+        <h4>💬 Respuesta empática</h4>
+        <p>Validar → Asistir → Intervenir</p>
+        <div class="arch-subrow">
+          <span class="arch-chip out">plantilla</span>
+          <span class="arch-chip out">ticket</span>
+          <span class="arch-chip out">ETA</span>
+        </div>
+      </div>
+      <div class="arch-box">
+        <div class="t">Salida B</div>
+        <h4>📊 Telemetría estructurada</h4>
+        <p>(v, a), emoción, severidad, nivel, escalado</p>
+        <div class="arch-subrow">
+          <span class="arch-chip out">CSV</span>
+          <span class="arch-chip out">dashboard</span>
+        </div>
+      </div>
+      <div class="arch-box">
+        <div class="t">Salida C</div>
+        <h4>🚨 Escalado humano</h4>
+        <p>Impotencia sostenida ≥ 2 mensajes</p>
+        <div class="arch-subrow">
+          <span class="arch-chip out">responsable</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="muted" style="text-align:center">El front (HTML) solo envía el texto y dibuja. Toda la lógica corre en el backend Python (Flask).</p>
+</section>
+
+<!-- 9 Resultados baseline -->
+<section class="slide">
+  <h2><span class="n">09</span> Resultados (baseline — optimista)</h2>
+  <div class="kpis">
+    <div class="kpi"><div class="v">0.92</div><div class="l">R² Valencia</div></div>
+    <div class="kpi"><div class="v">0.96</div><div class="l">R² Arousal</div></div>
+    <div class="kpi"><div class="v">0.99</div><div class="l">F1 emoción (5 clases)</div></div>
+    <div class="kpi"><div class="v">1.00</div><div class="l">F1 fricción (binaria)</div></div>
+  </div>
+  <div class="cols" style="margin-top:22px">
+    <div class="img-wrap"><img data-src="fig6_matriz_confusion.png" alt="Matriz de confusión"><div class="placeholder">Cargando…</div></div>
+    <div>
+      <p class="lead">⚠️ Estas cifras usan un <b>split aleatorio estratificado</b>. El problema: el dataset es sintético y usa plantillas fijas, por lo que el <b>60 % de los mensajes de test tenían su texto exacto ya presente en train</b>. La rama TF-IDF memoriza en lugar de generalizar.</p>
+      <p class="muted">La siguiente diapositiva elimina esa fuga y mide el desempeño real.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 10 Validación honesta -->
+<section class="slide">
+  <h2><span class="n">10</span> Validación honesta — sin fuga de texto</h2>
+  <p class="lead">Re-evaluamos con <b>GroupKFold agrupando por texto</b>, garantizando 0 % de solape. 64 % de los mensajes del dataset son cadenas duplicadas.</p>
+  <div class="cols" style="margin-top:16px">
+    <div class="img-wrap"><img data-src="fig9_validacion_honesta.png" alt="Comparación de esquemas"><div class="placeholder">Cargando…</div></div>
+    <div class="img-wrap"><img data-src="fig10_matriz_confusion_honesta.png" alt="Matriz confusión honesta"><div class="placeholder">Cargando…</div></div>
+  </div>
+  <div class="cols" style="margin-top:14px">
+    <div class="kpi" style="margin-top:0"><div class="v">0.76</div><div class="l">Valencia R² (caída: texto memorizaba)</div></div>
+    <div class="kpi" style="margin-top:0"><div class="v">0.94</div><div class="l">Arousal R² (aguanta: conducta robusta)</div></div>
+    <div class="kpi" style="margin-top:0"><div class="v">0.97</div><div class="l">Fricción F1 (objetivo operativo sostenido)</div></div>
+  </div>
+  <p class="muted" style="text-align:center">Un split solo temporal deja 65 % de fuga residual: únicamente agrupar por texto elimina la duplicación.</p>
+</section>
+
+<!-- 11 De TF-IDF a BETO: el camino de la rama textual -->
+<section class="slide">
+  <h2><span class="n">11</span> BETO: la rama textual resuelta</h2>
+  <p class="lead">TF-IDF memoriza n-gramas (R² cae de 0.92 a 0.76 con validación honesta). Word2Vec sobre corpus sintético no aprende semántica (R² = 0.38). La solución: <b>BETO congelado + Ridge</b> — embeddings contextualizados pre-entrenados en español.</p>
+  <div class="cols" style="margin-top:16px">
+    <div class="img-wrap"><img data-src="fig13_comparacion_modelos.png" alt="Comparación BETO vs TF-IDF vs Word2Vec"><div class="placeholder">Cargando…</div></div>
+    <div>
+      <div class="kpis" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+        <div class="kpi"><div class="v" style="color:var(--posi)">0.943</div><div class="l">Valencia R² (honesto)</div></div>
+        <div class="kpi"><div class="v" style="color:var(--posi)">0.907</div><div class="l">Arousal R² (honesto)</div></div>
+      </div>
+      <ul>
+        <li><b>✅ BETO congelado:</b> Feature extractor pre-entrenado en miles de millones de palabras en español. No memoriza n-gramas. Generaliza semántica.</li>
+        <li><b>✅ Validación honesta:</b> GroupKFold por remitente. R² Valencia 0.943 ± 0.013, Arousal 0.907 ± 0.031. Supera ampliamente a TF-IDF honesto (0.76) y Word2Vec (0.38).</li>
+        <li><b>⚡ Eficiencia:</b> Modelo congelado, solo se entrenan 2 Ridge de 768 dims. Entrenamiento en segundos, inferencia en milisegundos.</li>
+        <li><b>🔮 Próximo paso:</b> Fine-tuning ligero de las últimas capas de BETO con datos reales del canal para adaptación de dominio.</li>
+      </ul>
+      <p class="muted">La rama conductual (Gradient Boosting) sigue siendo robusta. Ahora la rama textual también lo es.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 12 Motor de respuesta -->
+<section class="slide">
+  <h2><span class="n">12</span> Motor de respuesta proactiva</h2>
+  <p class="lead">La intensidad de la intervención se gobierna por la severidad. Cada emoción usa plantillas empáticas distintas.</p>
+  <div class="cards" style="margin-top:18px;grid-template-columns:repeat(4,1fr)">
+    <div class="card"><span class="ic">🤫</span><h3>&lt; 0.30</h3><p>Observar — sin intervención.</p></div>
+    <div class="card"><span class="ic">👂</span><h3>0.30–0.50</h3><p>Validar — reconocimiento breve.</p></div>
+    <div class="card"><span class="ic">🛠️</span><h3>0.50–0.70</h3><p>Asistir — estado real + ETA.</p></div>
+    <div class="card"><span class="ic">🚨</span><h3>≥ 0.70</h3><p>Intervenir — priorizar / escalar.</p></div>
+  </div>
+  <p class="muted"><b>Derivación a humano</b> ante impotencia sostenida (≥2 mensajes del mismo usuario en la ventana). Sobre 300 eventos: 113 respuestas generadas, 10 escalados.</p>
+</section>
+
+<!-- 12 Demo -->
+<section class="slide center">
+  <div class="kicker">Demostración en vivo</div>
+  <h1>Escribe enojada → respuesta empática</h1>
+  <p class="lead">El modelo corre en <b>Python (Flask)</b>; el front solo dibuja. El usuario reporta una incidencia y el bot valida la emoción, informa el estado del ticket y, si hace falta, escala a un humano.</p>
+  <div class="tag-row" style="justify-content:center">
+    <span class="pill">BETO congelado + Ridge (embeddings español)</span>
+    <span class="pill">Estado por IP, motor de respuesta integrado</span>
+    <span class="pill">Telemetría (v, a) en vivo</span>
+  </div>
+  <p class="muted" style="margin-top:18px;max-width:60ch;margin-left:auto;margin-right:auto">El demo usa BETO congelado como rama textual + prior léxico para robustez ante texto libre. Fallback a TF-IDF si BETO no está disponible.</p>
+</section>
+
+<!-- 14 Pruebas A/B -->
+<section class="slide">
+  <h2><span class="n">14</span> Pruebas A/B del motor de respuesta</h2>
+  <p class="lead">Simulamos dos condiciones sobre los <b>8 hilos con fricción</b> del dataset. ¿El bot realmente reduce la escalada emocional?</p>
+  <div class="cols" style="margin-top:14px">
+    <div class="img-wrap"><img data-src="fig12_ab_test.png" alt="Resultados A/B"><div class="placeholder">Cargando…</div></div>
+    <div>
+      <ul>
+        <li><b>Condición A (sin bot):</b> El hilo transcurre sin intervención. Severidad acumulada = 8.24, 1 escalado a humano (impotencia).</li>
+        <li><b>Condición B (con bot):</b> El bot interviene en el 2do mensaje de fricción. Severidad acumulada = 5.78 <span style="color:var(--posi)">(–30 %)</span>. 0 escalados <span style="color:var(--posi)">(impotencia → preocupación)</span>.</li>
+        <li><b>Efecto:</b> El usuario se siente escuchado, deja de insistir (–1 mensaje/hilo), y la emoción no deriva a impotencia.</li>
+      </ul>
+      <p class="muted">Nota: Simulación sobre dataset sintético. Con datos reales se mediría satisfacción percibida y tiempo de resolución.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 15 Ética + cierre -->
+<section class="slide">
+  <h2><span class="n">15</span> Ética, límites y próximos pasos</h2>
+  <div class="cols" style="margin-top:10px">
+    <div>
+      <ul>
+        <li><b>Privacidad:</b> identificadores anonimizados; se descarta el texto crudo, solo telemetría estructurada.</li>
+        <li><b>Consentimiento:</b> los usuarios saben que el canal tiene un asistente afectivo.</li>
+        <li><b>Proporcionalidad:</b> solo interviene por encima de umbrales de severidad.</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><b>✅ Rama textual resuelta:</b> BETO congelado + Ridge logra R² Valencia 0.943 y Arousal 0.907 con validación honesta. Supera ampliamente TF-IDF (0.76) y Word2Vec (0.38).</li>
+        <li><b>Próximo — Fine-tuning:</b> BETO con fine-tuning ligero de últimas capas sobre datos reales del canal para adaptación de dominio.</li>
+        <li><b>Próximo — Datos:</b> recolección real con acuerdo inter-anotador (frustración, preocupación, impotencia).</li>
+        <li><b>Próximo — Impacto:</b> pruebas A/B del motor sobre fricción percibida y tiempo de resolución.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="nav">
+  <button class="prev-btn" id="btnPrev" onclick="go(-1)" aria-label="Anterior" disabled>‹ Anterior</button>
+  <button class="next-btn" id="btnNext" onclick="go(1)" aria-label="Siguiente">Siguiente ›</button>
+</div>
+<div class="foot"><span>Computación Afectiva · Avance</span><span id="counter">1 / 13</span></div>
+</div>
+
+<script>
+(function(){
+  const slides=[...document.querySelectorAll(".slide")];
+  let i=0;
+  const prog=document.getElementById("prog");
+  const counter=document.getElementById("counter");
+  const loader=document.getElementById("loader");
+
+  const btnPrev=document.getElementById("btnPrev");
+  const btnNext=document.getElementById("btnNext");
+
+  function updateNav(){
+    btnPrev.disabled=(i<=0);
+    btnNext.disabled=(i>=slides.length-1);
+  }
+  function show(n){
+    if(n<0 || n>=slides.length) return;
+    slides[i].classList.remove("active");
+    i=n;
+    slides[i].classList.add("active");
+    counter.textContent=(i+1)+" / "+slides.length;
+    prog.style.width=((i+1)/slides.length*100)+"%";
+    updateNav();
+  }
+  function go(d){
+    const target=i+d;
+    if(target>=0 && target<slides.length) show(target);
+  }
+
+  // Keyboard navigation (bounded)
+  document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){if(i<slides.length-1){go(1);e.preventDefault();}}
+    if(e.key==="ArrowLeft"||e.key==="PageUp"){if(i>0){go(-1);e.preventDefault();}}
+    if(e.key==="Home"){if(i!==0){show(0);e.preventDefault();}}
+    if(e.key==="End"){if(i!==slides.length-1){show(slides.length-1);e.preventDefault();}}
+  });
+
+  // Touch / swipe support (bounded)
+  let touchStartX=0,touchStartY=0;
+  document.addEventListener("touchstart",e=>{
+    touchStartX=e.changedTouches[0].screenX;
+    touchStartY=e.changedTouches[0].screenY;
+  },{passive:true});
+  document.addEventListener("touchend",e=>{
+    const dx=e.changedTouches[0].screenX-touchStartX;
+    const dy=e.changedTouches[0].screenY-touchStartY;
+    if(Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>50){
+      if(dx<0 && i<slides.length-1) go(1);
+      else if(dx>0 && i>0) go(-1);
+    }
+  },{passive:true});
+
+  // Image preloading with lazy loading + fade-in
+  const images=[...document.querySelectorAll('img[data-src]')];
+  let loadedCount=0;
+  const total=images.length;
+
+  function onImgLoad(img){
+    img.classList.add("loaded");
+    loadedCount++;
+    if(loadedCount>=total){
+      loader.classList.add("done");
+      setTimeout(()=>loader.style.display="none",500);
+    }
+  }
+
+  function onImgError(img){
+    loadedCount++;
+    const ph=img.parentElement.querySelector('.placeholder');
+    if(ph) ph.textContent="Error al cargar imagen";
+    if(loadedCount>=total){
+      loader.classList.add("done");
+      setTimeout(()=>loader.style.display="none",500);
+    }
+  }
+
+  images.forEach(img=>{
+    const src=img.getAttribute("data-src");
+    img.src=src;
+    img.removeAttribute("data-src");
+    if(img.complete && img.naturalWidth>0){
+      onImgLoad(img);
+    } else {
+      img.addEventListener("load",()=>onImgLoad(img),{once:true});
+      img.addEventListener("error",()=>onImgError(img),{once:true});
+    }
+  });
+
+  // Fallback: hide loader after 8s even if images fail
+  setTimeout(()=>{
+    if(!loader.classList.contains("done")){
+      loader.classList.add("done");
+      setTimeout(()=>loader.style.display="none",500);
+    }
+  },8000);
+
+  // Initial state
+  prog.style.width=(1/slides.length*100)+"%";
+  counter.textContent="1 / "+slides.length;
+  updateNav();
+})();
+</script>
+</body>
+</html>
